@@ -131,12 +131,10 @@ class MyPlayer(Player):
         self.map = map
 
         # Get List[(path, reward)] where path is List of Tiles
-        best_paths = self.get_best_path(map, player_info.money)
+        best_path, best_bid = self.get_best_path(map, player_info)
 
         # Set the bid
-        self.set_bid(self.get_bid(best_paths))
-
-        best_path = best_paths[0][0]
+        self.set_bid(best_bid)
 
         for i, tile in enumerate(best_path):
             # Build road
