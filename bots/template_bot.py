@@ -96,6 +96,17 @@ class MyPlayer(Player):
 
         return pop
 
+
+    '''
+    Gets tiles the have a population at or around it
+    '''
+    def init_cell_towers(map):
+        self.cell_towers = set()
+        for row in map:
+            for tile in row:
+                if(self.get_population(tile,map)>0):
+                    self.cell_towers.add(tile)
+
     '''
     Computes the estimated utility of building a path from location A to location B.
     '''
@@ -118,14 +129,14 @@ class MyPlayer(Player):
                 if map[x][y].structure and (map[x][y].structure.team == player_info.team):
                     locAs.append(map[x][y])
 
-        return locAs 
+        return locAs
 
     '''
     Returns best path and estimated reward of path starting from location A
-    
+
     Params
         - locA: Tile
-    
+
     Returns
         - path: List[Tile]
         - bid: float
@@ -150,11 +161,11 @@ class MyPlayer(Player):
 
     '''
     Returns best paths to build given map and cost
-    
+
     Params:
         - map: List[List[Tile]]
         - player_info
-        
+
     Returns:
         - paths: List[(List[Tile], reward)]
         - bid: Float
@@ -168,7 +179,7 @@ class MyPlayer(Player):
             if path and reward > best_reward:
                 best_path = path
                 best_reward = reward
-                best_bid = bid 
+                best_bid = bid
 
         return best_path, best_bid
 
