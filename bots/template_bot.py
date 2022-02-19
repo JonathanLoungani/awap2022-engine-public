@@ -66,17 +66,18 @@ class MyPlayer(Player):
     
     Params
         - locA: Tile
+        - budget: Float
     
     Returns
         - path: List[Tile]
         - reward: Float
     '''
-    def get_best_move(self, locA):
+    def get_best_move(self, locA, budget):
         max_reward = -math.inf
         max_path = None
         for tower in self.get_cell_towers(self.map):
             path, reward, cost = self.get_reward(locA, tower)
-            if reward > max_reward:
+            if reward > max_reward and cost <= budget:
                 max_path = path
 
         assert max_path is not None
