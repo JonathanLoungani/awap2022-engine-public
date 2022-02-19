@@ -15,8 +15,12 @@ class MyPlayer(Player):
         print("Init")
         self.turn = 0
         self.map = None
+        self.cell_towers = None
 
         return
+
+    def init_cell_towers(self):
+        pass
 
     '''
     Calculate the minimum cost to build roads from locA to locB.
@@ -51,7 +55,7 @@ class MyPlayer(Player):
     def get_cell_towers(self, map):
         for row in map:
             for tile in row:
-                if tile.structure is None and tile.population > 0:
+                if tile.structure is None and self.get_population(tile, self.map) > 0:
                     yield tile
 
     '''
@@ -95,7 +99,7 @@ class MyPlayer(Player):
     '''
     def get_reward(self, locA, locB):
         min_path, min_cost = self.min_road_cost(self.map, locA, locB)
-        reward = self.get_population(locB, self.map) - min_cost - 250
+        reward = 50 * self.get_population(locB, self.map) - min_cost - 250
 
         return min_path, reward, (min_cost + 250)
 
@@ -133,7 +137,6 @@ class MyPlayer(Player):
 
         for tower in self.get_cell_towers(self.map):
             path, reward, cost = self.get_reward(locA, tower)
-            print(f"Reward: {reward}, Cost: {cost}")
             # if reward > max_reward and cost <= player_info.money:
             if reward > max_reward:
                 max_path = path
@@ -141,7 +144,6 @@ class MyPlayer(Player):
                 max_bid = (cost - sec_max_cost) if sec_max_cost == -1 else (player_info.money - cost)
                 sec_max_cost = cost
 
-        print(f"Reward: {max_reward}, Max path: {len(max_path)}")
         return max_path, max_bid, max_reward
 
     '''
@@ -185,6 +187,9 @@ class MyPlayer(Player):
 
 
     def play_turn(self, turn_num, map, player_info):
+        if self.cell_towers is None:
+            self.init_cell_towers()
+
         self.map = map
 
         # Get List[(path, reward)] where path is List of Tiles
