@@ -15,13 +15,14 @@ class MyPlayer(Player):
         print("Init")
         self.turn = 0
         self.map = None
+        self.player_info = None
 
         return
 
     '''
     Calculate the minimum cost to build roads from locA to locB.
     '''
-    def min_road_cost(self, map, source, target):
+    def min_road_cost(self, map, target):
         class Node(object):
             def __init__(self, val: int, data):
                 self.val = val
@@ -42,7 +43,7 @@ class MyPlayer(Player):
                     continue
 
                 neighbor = map[x][y]
-                if neighbor.structure is None:
+                if neighbor.structure is None or neighbor.structure.team == self.player_info.team:
                     neighbors.append(neighbor)
             return neighbors
 
@@ -55,22 +56,24 @@ class MyPlayer(Player):
         prev = defaultdict(lambda: None)
         visited = set()
 
-        frontier = [Node(source.passability, source)]
-        dist[source] = source.passability
+        frontier = [Node(target.passability, target)]
+        dist[target] = target.passability
         heapq.heapify(frontier)
 
-        # print('source:', source.x, source.y, 'target:', target.x, target.y)
+        # print('target:', target.x, target.y)
+        endTile = None
         while len(frontier) != 0:
 
             tile = heapq.heappop(frontier).data
-            if tile == target: break
+            if tile.structure is not None and tile.structure.team == self.player_info.team:
+                endTile = tile
             if (tile.x, tile.y) in visited: continue
 
             visited.add((tile.x, tile.y))
 
             for neighbor in get_neighbors(tile):
                 if (neighbor.x, neighbor.y) not in visited:
-                    alt = dist[tile] + neighbor.passability
+                    alt = dist[tile] + neighbor.passability # + abs(source.x - neighbor.x) + abs(source.y - neighbor.y) # heuristic
                     if alt < dist[neighbor]:
                         dist[neighbor] = alt
                         prev[neighbor] = tile
@@ -80,13 +83,13 @@ class MyPlayer(Player):
 
 
         path = []
-        u = target
+        u = endTile
         if prev[u] is None:
             # raise Exception('No path possible')
             return path, float('inf')
 
         while u is not None:
-            path.insert(0, u)
+            path.append(u)
             u = prev[u]
 
         return path, dist[target]
@@ -137,10 +140,10 @@ class MyPlayer(Player):
         return pop
 
     '''
-    Computes the estimated utility of building a path from location A to location B.
+    Computes the estimated utility of building a path to location B.
     '''
-    def get_reward(self, locA, locB):
-        min_path, min_cost = self.min_road_cost(self.map, locA, locB)
+    def get_reward(self, locB):
+        min_path, min_cost = self.min_road_cost(self.map, locB)
         reward = self.get_population(locB, self.map) - min_cost - 250
 
         return min_path, reward, (min_cost + 250)
@@ -171,14 +174,15 @@ class MyPlayer(Player):
         - bid: float
         - reward: Float
     '''
-    def get_best_move(self, locA, player_info):
+    def get_best_move(self, player_info):
         max_reward = -math.inf
         max_path = None
         max_bid = 0
         sec_max_cost = -1
 
         for tower in self.get_cell_towers(self.map):
-            path, reward, cost = self.get_reward(locA, tower)
+            print(tower.x, tower.y)
+            path, reward, cost = self.get_reward(tower)
             # print(f"Reward: {reward}, Cost: {cost}")
             # if reward > max_reward and cost <= player_info.money:
             if reward > max_reward:
@@ -187,7 +191,7 @@ class MyPlayer(Player):
                 max_bid = (cost - sec_max_cost) if sec_max_cost == -1 else (player_info.money - cost)
                 sec_max_cost = cost
 
-        # print(f"Reward: {max_reward}, Max path: {len(max_path)}")
+        print(f"Reward: {max_reward}, Max path: {len(max_path)}")
         return max_path, max_bid, max_reward
 
     '''
@@ -205,12 +209,11 @@ class MyPlayer(Player):
         best_path = None
         best_reward = -math.inf
         best_bid = None
-        for locA in self.get_locAs(map, player_info):
-            path, bid, reward = self.get_best_move(locA, player_info)
-            if path and reward > best_reward:
-                best_path = path
-                best_reward = reward
-                best_bid = bid 
+        path, bid, reward = self.get_best_move(player_info)
+        if path and reward > best_reward:
+            best_path = path
+            best_reward = reward
+            best_bid = bid
 
         return best_path, best_bid
 
@@ -232,6 +235,7 @@ class MyPlayer(Player):
 
     def play_turn(self, turn_num, map, player_info):
         self.map = map
+        self.player_info = player_info
 
         # Get List[(path, reward)] where path is List of Tiles
         best_path, best_bid = self.get_best_path(map, player_info)
