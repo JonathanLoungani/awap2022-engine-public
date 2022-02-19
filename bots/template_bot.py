@@ -41,7 +41,25 @@ class MyPlayer(Player):
     Computes the estimated utility of building a path from location A to location B.
     '''
     def get_reward(self, locA, locB):
-        return [], 0
+        min_path, min_cost = self.min_road_cost(locA, locB)
+        reward = self.get_utility(locB) - min_cost - 250
+
+        return min_path, reward, (min_cost + 250)
+
+    '''
+    Returns all possible starting locations
+    '''
+    def get_locAs(self, map):
+        self.MAP_WIDTH = len(map)
+        self.MAP_HEIGHT = len(map[0])
+
+        locAs = []
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                if map[x][y].structure.team == self.team:
+                    locAs.append(map[x][y])
+
+        return locAs 
 
     '''
     Returns best path and estimated reward of path starting from location A
@@ -69,14 +87,23 @@ class MyPlayer(Player):
     
     Params:
         - map: List[List[Tile]]
-        - cost: Float (TODO: currently not used in algo)
         
     Returns:
         - paths: List[(List[Tile], reward)]
-          currently only the best two paths/rewards
+        - bid: Float
     '''
-    def get_best_path(self, map, cost):
-        pass
+    def get_best_path(self, map):
+        best_path = None
+        best_reward = -math.inf
+        best_bid = None
+        for locA in self.get_locAs(map):
+            path, bid, reward = self.get_best_move(locA)
+            if path and reward > best_reward:
+                best_path = path
+                best_reward = reward
+                best_bid = bid 
+
+        return best_path, best_bid
 
 
 
