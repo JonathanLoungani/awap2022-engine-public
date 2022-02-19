@@ -230,29 +230,29 @@ class MyPlayer(Player):
             return 
 
         #remove neighbors from consideration
-        if(x>=2):
+        if(x>=2) and map[x-2][y] in self.cell_towers:
             self.cell_towers.remove(map[x-2][y])
-        if((x>=1) and (y>=1)):
+        if((x>=1) and (y>=1)) and map[x-1][y-1] in self.cell_towers:
             self.cell_towers.remove(map[x-1][y-1])
-        if(x>=1):
+        if(x>=1) and map[x-1][y] in self.cell_towers:
             self.cell_towers.remove(map[x-1][y])
-        if((x>=1) and (y<cols-1)):
+        if((x>=1) and (y<cols-1)) and map[x-1][y+1] in self.cell_towers:
             self.cell_towers.remove(map[x-1][y+1])
-        if(y>=2):
+        if(y>=2) and map[x][y-2] in self.cell_towers:
             self.cell_towers.remove(map[x][y-2])
-        if(y>=1):
+        if(y>=1) and map[x][y-1] in self.cell_towers:
             self.cell_towers.remove(map[x][y-1])
-        if(y<cols-1):
+        if(y<cols-1) and map[x][y+1] in self.cell_towers:
             self.cell_towers.remove(map[x][y+1])
-        if(y<cols-2):
+        if(y<cols-2) and map[x][y+2] in self.cell_towers:
             self.cell_towers.remove(map[x][y+2])
-        if((x<rows-1) and (y>=1)):
+        if((x<rows-1) and (y>=1)) and map[x+1][y-1] in self.cell_towers:
             self.cell_towers.remove(map[x+1][y-1])
-        if(x<rows-1):
+        if(x<rows-1) and map[x+1][y] in self.cell_towers:
             self.cell_towers.remove(map[x+1][y])
-        if((x<rows-1) and (y<cols-1)):
+        if((x<rows-1) and (y<cols-1)) and map[x+1][y+1] in self.cell_towers:
             self.cell_towers.remove(map[x+1][y+1])
-        if(x<rows-2):
+        if(x<rows-2) and map[x+2][y] in self.cell_towers:
             self.cell_towers.remove(map[x+2][y])
 
 
