@@ -2,6 +2,8 @@ import sys
 
 import math
 import random
+import heapq
+from collections import defaultdict
 
 import numpy as np
 
@@ -20,6 +22,7 @@ class MyPlayer(Player):
 
     '''
     Calculate the minimum cost to build roads from locA to locB.
+<<<<<<< Updated upstream
     '''
     def min_road_cost(self, map, locA, locB):
         dx = abs(locB.x - locA.x)
@@ -44,6 +47,62 @@ class MyPlayer(Player):
                 y -= 1
 
         return path, 10 * (dx + dy)
+=======
+    Return path, cost
+    '''
+    def min_road_cost(self, map, source, target):
+        def get_neighbors(location):
+            neighbors = []
+            for (dx, dy) in [[(dx, dy) for dx in (-1, 1)] for dy in (-1, 1)]:
+                x = location.x + dx
+                y = location.y + dy
+                if x < 0 or y < 0 or x >= len(map) or y >= len(map[0]):
+                    continue
+
+                neighbor = map[x][y]
+                if neighbor.structure is None:
+                    neighbors.append(neighbor)
+            return neighbors
+
+        if source.structure is not None:
+            raise Exception('min_road_cost called starting from non-empty tile')
+        if target.structure is not None:
+            raise Exception('min_road_cost called ending on non-empty tile')
+
+        dist = defaultdict(lambda: float('inf'))
+        prev = defaultdict(lambda: None)
+        visited = {}
+
+        frontier = [(source.passability, source)]
+        dist[source] = source.passability
+        heapq.heapify(frontier)
+
+        while len(frontier) != 0:
+            (distance, tile) = heapq.heappop(frontier)
+            visited.add(tile)
+
+            if tile == target:
+                break
+
+            for neighbor in get_neighbors(tile):
+                if neighbor not in visited:
+                    alt = dist[tile] + neighbor.passability
+                    if alt < dist[neighbor]:
+                        dist[neighbor] = alt
+                        prev[neighbor] = tile
+                    heapq.heappush(frontier, (dist[neighbor], neighbor))
+
+        path = []
+        u = target
+        if prev[u] is None:
+            raise Exception('No path possible')
+
+        while u is not None:
+            path.insert(0, u)
+            u = prev[u]
+
+        return path, dist[target]
+>>>>>>> Stashed changes
 
     '''
     Generator to yield optimal cell tower locations.
