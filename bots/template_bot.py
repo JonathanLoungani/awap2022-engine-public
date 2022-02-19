@@ -15,6 +15,7 @@ class MyPlayer(Player):
         print("Init")
         self.turn = 0
         self.map = None
+        self.prev_dest = None
 
         return
 
@@ -183,9 +184,56 @@ class MyPlayer(Player):
 
         return best_reward - second_reward
 
+    '''
+    Removes cell towers from set for consideration
+    '''
+    def remove_neighbors(self, prev_dest, map, player_info):
+        x = prev_dest.x
+        y = prev_dest.y
+        rows = len(map)
+        cols = len(map[0])
+
+        #remove the dest from consideration if controlled by anyone
+        if map[x][y].structure == None:
+            return
+
+        self.cell_towers.remove(map[x][y])
+        if map[x][y].structure.team != player_info.team:
+            return 
+
+        #remove neighbors from consideration
+        if(x>=2):
+            self.cell_towers.remove(map[x-2][y])
+        if((x>=1) and (y>=1)):
+            self.cell_towers.remove(map[x-1][y-1])
+        if(x>=1):
+            self.cell_towers.remove(map[x-1][y])
+        if((x>=1) and (y<cols-1)):
+            self.cell_towers.remove(map[x-1][y+1])
+        if(y>=2):
+            self.cell_towers.remove(map[x][y-2])
+        if(y>=1):
+            self.cell_towers.remove(map[x][y-1])
+        if(y<cols-1):
+            self.cell_towers.remove(map[x][y+1])
+        if(y<cols-2):
+            self.cell_towers.remove(map[x][y+2])
+        if((x<rows-1) and (y>=1)):
+            self.cell_towers.remove(map[x+1][y-1])
+        if(x<rows-1):
+            self.cell_towers.remove(map[x+1][y])
+        if((x<rows-1) and (y<cols-1)):
+            self.cell_towers.remove(map[x+1][y+1])
+        if(x<rows-2):
+            self.cell_towers.remove(map[x+2][y])
+
 
     def play_turn(self, turn_num, map, player_info):
         self.map = map
+
+        if self.prev_dest is not None:
+            #remove cell towers near prev_dest from consideration
+            self.remove_neighbors(self.prev_dest, map, player_info)
 
         # Get List[(path, reward)] where path is List of Tiles
         best_path, best_bid = self.get_best_path(map, player_info)
@@ -203,3 +251,5 @@ class MyPlayer(Player):
             # Build tower at the end of the path
             else:
                 self.build(StructureType.TOWER, tile.x, tile.y)
+        
+        self.prev_dest(best_path[-1])
