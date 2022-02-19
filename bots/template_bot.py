@@ -49,14 +49,14 @@ class MyPlayer(Player):
     '''
     Returns all possible starting locations
     '''
-    def get_locAs(self, map):
+    def get_locAs(self, map, player_info):
         self.MAP_WIDTH = len(map)
         self.MAP_HEIGHT = len(map[0])
 
         locAs = []
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
-                if map[x][y].structure and (map[x][y].structure.team == self.team):
+                if map[x][y].structure and (map[x][y].structure.team == player_info.team):
                     locAs.append(map[x][y])
 
         return locAs 
@@ -102,7 +102,7 @@ class MyPlayer(Player):
         best_path = None
         best_reward = -math.inf
         best_bid = None
-        for locA in self.get_locAs(map):
+        for locA in self.get_locAs(map, player_info):
             path, bid, reward = self.get_best_move(locA, player_info)
             if path and reward > best_reward:
                 best_path = path
