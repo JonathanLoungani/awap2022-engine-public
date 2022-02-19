@@ -22,33 +22,6 @@ class MyPlayer(Player):
 
     '''
     Calculate the minimum cost to build roads from locA to locB.
-<<<<<<< Updated upstream
-    '''
-    def min_road_cost(self, map, locA, locB):
-        dx = abs(locB.x - locA.x)
-        dy = abs(locB.y - locA.y)
-
-        path = []
-        # Path along x
-        low_x = locB.x if locB.x < locA.x else locA.x
-        high_x = locB.x if locB.x > locA.x else locA.x
-        y = locB.y if low_x == locB.x else locA.y
-        for i in range(low_x, high_x + 1):
-            path.append(map[i][y])
-
-        # Path along y
-        target_y = locB.y if y == locB.x else locA.y
-        while y != target_y:
-            if y < target_y:
-                path.append(map[high_x][y + 1])
-                y += 1
-            else:
-                path.append(map[high_x][y - 1])
-                y -= 1
-
-        return path, 10 * (dx + dy)
-=======
-    Return path, cost
     '''
     def min_road_cost(self, map, source, target):
         def get_neighbors(location):
@@ -102,7 +75,6 @@ class MyPlayer(Player):
             u = prev[u]
 
         return path, dist[target]
->>>>>>> Stashed changes
 
     '''
     Generator to yield optimal cell tower locations.
