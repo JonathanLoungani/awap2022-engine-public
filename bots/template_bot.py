@@ -24,7 +24,10 @@ class MyPlayer(Player):
     Generator to yield optimal cell tower locations.
     '''
     def get_cell_towers(self, map):
-        return
+        for row in map:
+            for tile in row:
+                if tile.structure is not None and tile.population > 0:
+                    yield tile
 
     '''
     Get population at tile
