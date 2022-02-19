@@ -97,4 +97,19 @@ class MyPlayer(Player):
 
     def play_turn(self, turn_num, map, player_info):
         self.map = map
-        return
+
+        # Get List[(path, reward)] where path is List of Tiles
+        best_paths = self.get_best_path(map, player_info.money)
+
+        # Set the bid
+        self.set_bid(self.get_bid(best_paths))
+
+        best_path = best_paths[0][0]
+
+        for i, tile in enumerate(best_path):
+            # Build road
+            if i < len(best_path) - 1:
+                self.build(StructureType.ROAD, tile.x, tile.y)
+            # Build tower at the end of the path
+            else:
+                self.build(StructureType.TOWER, tile.x, tile.y)
