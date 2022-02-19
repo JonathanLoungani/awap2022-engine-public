@@ -5,8 +5,6 @@ import random
 import heapq
 from collections import defaultdict
 
-import numpy as np
-
 from src.player import *
 from src.structure import *
 from src.game_constants import GameConstants as GC
@@ -24,9 +22,20 @@ class MyPlayer(Player):
     Calculate the minimum cost to build roads from locA to locB.
     '''
     def min_road_cost(self, map, source, target):
+        class Node(object):
+            def __init__(self, val: int, data):
+                self.val = val
+                self.data = data
+
+            def __repr__(self):
+                return f'Node value: {self.val}'
+
+            def __lt__(self, other):
+                return self.val < other.val
+
         def get_neighbors(location):
             neighbors = []
-            for (dx, dy) in [[(dx, dy) for dx in (-1, 1)] for dy in (-1, 1)]:
+            for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 x = location.x + dx
                 y = location.y + dy
                 if x < 0 or y < 0 or x >= len(map) or y >= len(map[0]):
@@ -37,38 +46,44 @@ class MyPlayer(Player):
                     neighbors.append(neighbor)
             return neighbors
 
-        if source.structure is not None:
-            raise Exception('min_road_cost called starting from non-empty tile')
+        # if source.structure is not None:
+        #     raise Exception('min_road_cost called starting from non-empty tile')
         if target.structure is not None:
             raise Exception('min_road_cost called ending on non-empty tile')
 
         dist = defaultdict(lambda: float('inf'))
         prev = defaultdict(lambda: None)
-        visited = {}
+        visited = set()
 
-        frontier = [(source.passability, source)]
+        frontier = [Node(source.passability, source)]
         dist[source] = source.passability
         heapq.heapify(frontier)
 
+        # print('source:', source.x, source.y, 'target:', target.x, target.y)
         while len(frontier) != 0:
-            (distance, tile) = heapq.heappop(frontier)
-            visited.add(tile)
 
-            if tile == target:
-                break
+            tile = heapq.heappop(frontier).data
+            if tile == target: break
+            if (tile.x, tile.y) in visited: continue
+
+            visited.add((tile.x, tile.y))
 
             for neighbor in get_neighbors(tile):
-                if neighbor not in visited:
+                if (neighbor.x, neighbor.y) not in visited:
                     alt = dist[tile] + neighbor.passability
                     if alt < dist[neighbor]:
                         dist[neighbor] = alt
                         prev[neighbor] = tile
-                    heapq.heappush(frontier, (dist[neighbor], neighbor))
+                    heapq.heappush(frontier, Node(dist[neighbor], neighbor))
+
+            # print(tile.x, tile.y, "\n", [(n.data.x, n.data.y) for n in frontier], "\n", visited, "\n" + "="*20)
+
 
         path = []
         u = target
         if prev[u] is None:
-            raise Exception('No path possible')
+            # raise Exception('No path possible')
+            return path, float('inf')
 
         while u is not None:
             path.insert(0, u)
@@ -164,7 +179,7 @@ class MyPlayer(Player):
 
         for tower in self.get_cell_towers(self.map):
             path, reward, cost = self.get_reward(locA, tower)
-            print(f"Reward: {reward}, Cost: {cost}")
+            # print(f"Reward: {reward}, Cost: {cost}")
             # if reward > max_reward and cost <= player_info.money:
             if reward > max_reward:
                 max_path = path
@@ -172,7 +187,7 @@ class MyPlayer(Player):
                 max_bid = (cost - sec_max_cost) if sec_max_cost == -1 else (player_info.money - cost)
                 sec_max_cost = cost
 
-        print(f"Reward: {max_reward}, Max path: {len(max_path)}")
+        # print(f"Reward: {max_reward}, Max path: {len(max_path)}")
         return max_path, max_bid, max_reward
 
     '''
