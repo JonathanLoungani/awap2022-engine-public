@@ -115,6 +115,10 @@ class MyPlayer(Player):
     def get_neighbors(self,tile):
         n = []
         n.append(tile)
+        x = tile.x
+        y = tile.y
+        rows = len(self.map)
+        cols = len(self.map[0])
         if(x>=2):
             n.append(map[x-2][y])
         if((x>=1) and (y>=1)):
