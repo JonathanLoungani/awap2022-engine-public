@@ -17,6 +17,8 @@ class MyPlayer(Player):
         self.map = None
         self.cell_towers = None
         self.team = None
+        self.locAs = None
+        self.prev_path = None
 
         return
 
@@ -24,27 +26,30 @@ class MyPlayer(Player):
     Calculate the minimum cost to build roads from locA to locB.
     '''
     def min_road_cost(self, map, locA, locB):
-        dx = abs(locB.x - locA.x)
-        dy = abs(locB.y - locA.y)
+        cost = 0
 
         path = []
         # Path along x
         if locA.x < locB.x:
             for i in range(locA.x, locB.x + 1):
                 path.append(map[i][locA.y])
+                cost += 10 * map[i][locA.y].passability
         else:
             for i in range(locA.x, locB.x - 1, -1):
                 path.append(map[i][locA.y])
+                cost += 10 * map[i][locA.y].passability
 
         # Path along y
         if locA.y < locB.y:
             for i in range(locA.y, locB.y + 1):
                 path.append(map[locB.x][i])
+                cost += 10 * map[locB.x][i].passability
         else:
             for i in range(locA.y, locB.y - 1, -1):
                 path.append(map[locB.x][i])
+                cost += 10 * map[locB.x][i].passability
 
-        return path, 10 * (dx + dy)
+        return path, cost
 
     '''
     Generator to yield optimal cell tower locations.
@@ -68,7 +73,7 @@ class MyPlayer(Player):
         unoccupied = False
         for tile in tiles:
             if tile.structure is not None:
-                if tile.structure is StructureType.TOWER and tile.structure.team == self.team:
+                if tile.structure.type == StructureType.TOWER and tile.structure.team == self.team:
                     return False
             if tile.structure is None:
                 unoccupied = True
@@ -175,11 +180,20 @@ class MyPlayer(Player):
         self.MAP_WIDTH = len(map)
         self.MAP_HEIGHT = len(map[0])
 
-        locAs = []
-        for x in range(self.MAP_WIDTH):
-            for y in range(self.MAP_HEIGHT):
-                if map[x][y].structure and (map[x][y].structure.team == player_info.team):
-                    locAs.append(map[x][y])
+        if self.locAs is None:
+            locAs = set()
+            for x in range(self.MAP_WIDTH):
+                for y in range(self.MAP_HEIGHT):
+                    if map[x][y].structure and (map[x][y].structure.team == player_info.team):
+                        locAs.add(map[x][y])
+            self.locAs = locAs
+        else:
+            if self.prev_path is not None:
+                for item in self.prev_path:
+                    if item.structure and (item.structure.team == player_info.team):
+                        self.locAs.add(item)
+
+        return self.locAs
 
         return locAs
 
@@ -261,12 +275,11 @@ class MyPlayer(Player):
         # Get List[(path, reward)] where path is List of Tiles
         best_path, best_bid = self.get_best_path(map, player_info)
 
+        self.prev_path = best_path
+
         if best_path is None:
-            print("Best path is none")
             return
 
-        print("Len best path", len(best_path))
-        print(f"Target {best_path[-1].x}, {best_path[-1].y}")
         # Set the bid
         self.set_bid(best_bid)
 
