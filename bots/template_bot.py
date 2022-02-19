@@ -166,7 +166,7 @@ class MyPlayer(Player):
     '''
     def get_reward(self, locA, locB):
         min_path, min_cost = self.min_road_cost(self.map, locA, locB)
-        reward = self.get_population(locB, self.map)**2 - min_cost - 250
+        reward = 5**self.get_population(locB, self.map) - min_cost - 250
 
         return min_path, reward, (min_cost + 250)
 
@@ -181,7 +181,6 @@ class MyPlayer(Player):
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
                 if map[x][y].structure and (map[x][y].structure.team == player_info.team):
-                    print(map[x][y].x, map[x][y].y)
                     locAs.append(map[x][y])
 
         return locAs
@@ -269,7 +268,7 @@ class MyPlayer(Player):
             return
 
         if prev_dest in self.cell_towers:
-            self.cell_towers.remove(map[x][y])
+            self.cell_towers.remove(prev_dest)
         if map[x][y].structure.team != player_info.team:
             return 
 
