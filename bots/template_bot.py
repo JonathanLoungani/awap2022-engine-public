@@ -17,6 +17,7 @@ class MyPlayer(Player):
         self.map = None
         self.cell_towers = None
         self.team = None
+        self.prev_dest = None
 
         return
 
@@ -27,6 +28,8 @@ class MyPlayer(Player):
         dx = abs(locB.x - locA.x)
         dy = abs(locB.y - locA.y)
 
+        cost = 0
+
         path = []
         # Path along x
         low_x = locB.x if locB.x < locA.x else locA.x
@@ -34,6 +37,7 @@ class MyPlayer(Player):
         y = locB.y if low_x == locB.x else locA.y
         for i in range(low_x, high_x + 1):
             path.append(map[i][y])
+            cost += 10 * map[i][y].passability
 
         # Path along y
         target_y = locB.y if y == locB.x else locA.y
@@ -44,18 +48,16 @@ class MyPlayer(Player):
             else:
                 path.append(map[high_x][y - 1])
                 y -= 1
+            cost += 10 * map[high_x][y].passability
 
-        return path, 10 * (dx + dy)
+        return path, cost
 
     '''
     Generator to yield optimal cell tower locations.
     '''
     def get_cell_towers(self):
         for tower in self.cell_towers:
-            if self.is_profitable(tower):
-                yield tower
-            else:
-                self.cell_towers.remove(tower)
+            yield tower
 
     '''
     Returns true if tile is profitable to us
@@ -164,7 +166,7 @@ class MyPlayer(Player):
     '''
     def get_reward(self, locA, locB):
         min_path, min_cost = self.min_road_cost(self.map, locA, locB)
-        reward = 50 * self.get_population(locB, self.map) - min_cost - 250
+        reward = self.get_population(locB, self.map)**2 - min_cost - 250
 
         return min_path, reward, (min_cost + 250)
 
@@ -179,6 +181,7 @@ class MyPlayer(Player):
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
                 if map[x][y].structure and (map[x][y].structure.team == player_info.team):
+                    print(map[x][y].x, map[x][y].y)
                     locAs.append(map[x][y])
 
         return locAs
@@ -260,10 +263,11 @@ class MyPlayer(Player):
         cols = len(map[0])
 
         #remove the dest from consideration if controlled by anyone
-        if map[x][y].structure == None:
+        if not map[x][y].structure:
             return
 
-        self.cell_towers.remove(map[x][y])
+        if prev_dest in self.cell_towers:
+            self.cell_towers.remove(map[x][y])
         if map[x][y].structure.team != player_info.team:
             return 
 
@@ -301,10 +305,14 @@ class MyPlayer(Player):
 
         self.map = map
 
+        if self.prev_dest:
+            self.remove_neighbors(self.prev_dest, map, player_info)
+
         # Get List[(path, reward)] where path is List of Tiles
         best_path, best_bid = self.get_best_path(map, player_info)
 
         if best_path is None:
+            print("No path found")
             return
 
         # Set the bid
@@ -312,8 +320,9 @@ class MyPlayer(Player):
 
         for i, tile in enumerate(best_path):
             # Build road
-            if i < len(best_path) - 1:
+            if i < (len(best_path) - 1):
                 self.build(StructureType.ROAD, tile.x, tile.y)
             # Build tower at the end of the path
             else:
                 self.build(StructureType.TOWER, tile.x, tile.y)
+                self.prev_dest = tile
