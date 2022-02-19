@@ -99,11 +99,11 @@ class MyPlayer(Player):
     Gets tiles the have a population at or around it
     '''
     def init_cell_towers(map):
-        rows = len(map)
-        cols = len(map[0])
         self.cell_towers = set()
-
-
+        for row in map:
+            for tile in row:
+                if(self.get_population(tile,map)>0):
+                    self.cell_towers.add(tile)
 
     '''
     Computes the estimated utility of building a path from location A to location B.
