@@ -67,10 +67,10 @@ class MyPlayer(Player):
         tiles = self.get_neighbors(tile)
         unoccupied = False
         for tile in tiles:
-            if tile.team == self.team and tile.structure is StructureType.TOWER:
-                return False
             if tile.structure is None:
                 unoccupied = True
+            elif tile.structure.team == self.team and tile.structure is StructureType.TOWER:
+                return False
         return unoccupied
 
     '''
@@ -112,13 +112,14 @@ class MyPlayer(Player):
     '''
     Gets neighboring tiles
     '''
-    def get_neighbors(self,tile):
-        n = []
-        n.append(tile)
+    def get_neighbors(self, tile):
         x = tile.x
         y = tile.y
-        rows = len(self.map)
-        cols = len(self.map[0])
+        map = self.map
+        rows = len(map)
+        cols = len(map[0])
+        n = []
+        n.append(tile)
         if(x>=2):
             n.append(map[x-2][y])
         if((x>=1) and (y>=1)):
@@ -249,7 +250,6 @@ class MyPlayer(Player):
 
         return best_reward - second_reward
 
-<<<<<<< HEAD
     '''
     Removes cell towers from set for consideration
     '''
@@ -293,8 +293,6 @@ class MyPlayer(Player):
         if(x<rows-2) and map[x+2][y] in self.cell_towers:
             self.cell_towers.remove(map[x+2][y])
 
-=======
->>>>>>> 4fb93a8b2efaeafb7fcff678025b0cd0835c6bae
 
     def play_turn(self, turn_num, map, player_info):
         if self.cell_towers is None:
