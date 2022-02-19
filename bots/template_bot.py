@@ -20,7 +20,9 @@ class MyPlayer(Player):
     Calculate the minimum cost to build roads from locA to locB.
     '''
     def min_road_cost(self, map, locA, locB):
-        return
+        dx = abs(locB.x - locA.x)
+        dy = abs(locB.y - locB.y)
+        return 10 * (dx + dy)
 
     '''
     Generator to yield optimal cell tower locations.
