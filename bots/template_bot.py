@@ -19,7 +19,8 @@ class MyPlayer(Player):
 
         return
 
-    def init_cell_towers(self):
+    def init_cell_towers(self, map):
+
         pass
 
     '''
@@ -188,7 +189,7 @@ class MyPlayer(Player):
 
     def play_turn(self, turn_num, map, player_info):
         if self.cell_towers is None:
-            self.init_cell_towers()
+            self.init_cell_towers(map)
 
         self.map = map
 
