@@ -40,7 +40,7 @@ class MyPlayer(Player):
             cost += 10 * map[i][y].passability
 
         # Path along y
-        target_y = locB.y if y == locB.x else locA.y
+        target_y = locB.y if high_x == locB.x else locA.y
         while y != target_y:
             if y < target_y:
                 path.append(map[high_x][y + 1])
@@ -236,6 +236,8 @@ class MyPlayer(Player):
                 best_reward = reward
                 best_bid = bid
 
+        
+        print(best_path[-1].x, best_path[-1].y)
         return best_path, best_bid
 
     '''
