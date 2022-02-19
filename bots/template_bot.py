@@ -18,6 +18,8 @@ class MyPlayer(Player):
         self.cell_towers = None
         self.team = None
         self.prev_dest = None
+        self.locAs = None
+        self.prev_path = None
 
         return
 
@@ -166,7 +168,7 @@ class MyPlayer(Player):
     '''
     def get_reward(self, locA, locB):
         min_path, min_cost = self.min_road_cost(self.map, locA, locB)
-        reward = 5**self.get_population(locB, self.map) - min_cost - 250
+        reward = 100*self.get_population(locB, self.map) - min_cost - 250
 
         return min_path, reward, (min_cost + 250)
 
@@ -177,13 +179,20 @@ class MyPlayer(Player):
         self.MAP_WIDTH = len(map)
         self.MAP_HEIGHT = len(map[0])
 
-        locAs = []
-        for x in range(self.MAP_WIDTH):
-            for y in range(self.MAP_HEIGHT):
-                if map[x][y].structure and (map[x][y].structure.team == player_info.team):
-                    locAs.append(map[x][y])
+        if self.locAs is None:
+            locAs = set()
+            for x in range(self.MAP_WIDTH):
+                for y in range(self.MAP_HEIGHT):
+                    if map[x][y].structure and (map[x][y].structure.team == player_info.team):
+                        locAs.add(map[x][y])
+            self.locAs = locAs
+        else:
+            if self.prev_path is not None:
+                for item in self.prev_path:
+                    if item.structure and (item.structure.team == player_info.team):
+                        self.locAs.add(item)
 
-        return locAs
+        return self.locAs
 
     '''
     Returns best path and estimated reward of path starting from location A
@@ -312,6 +321,7 @@ class MyPlayer(Player):
         # Get List[(path, reward)] where path is List of Tiles
         best_path, best_bid = self.get_best_path(map, player_info)
 
+        self.prev_path = best_path
         if best_path is None:
             print("No path found")
             return
