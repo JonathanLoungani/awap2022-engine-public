@@ -23,8 +23,27 @@ class MyPlayer(Player):
     '''
     def min_road_cost(self, map, locA, locB):
         dx = abs(locB.x - locA.x)
-        dy = abs(locB.y - locB.y)
-        return 10 * (dx + dy)
+        dy = abs(locB.y - locA.y)
+
+        path = []
+        # Path along x
+        low_x = locB.x if locB.x < locA.x else locA.x
+        high_x = locB.x if locB.x > locA.x else locA.x
+        y = locB.y if low_x == locB.x else locA.y
+        for i in range(low_x, high_x + 1):
+            path.append(map[i][y])
+
+        # Path along y
+        target_y = locB.y if y == locB.x else locA.y
+        while y != target_y:
+            if y < target_y:
+                path.append(map[high_x][y + 1])
+                y += 1
+            else:
+                path.append(map[high_x][y - 1])
+                y -= 1
+
+        return path, 10 * (dx + dy)
 
     '''
     Generator to yield optimal cell tower locations.
@@ -32,7 +51,7 @@ class MyPlayer(Player):
     def get_cell_towers(self, map):
         for row in map:
             for tile in row:
-                if tile.structure is not None and tile.population > 0:
+                if tile.structure is None and tile.population > 0:
                     yield tile
 
     '''
@@ -75,8 +94,8 @@ class MyPlayer(Player):
     Computes the estimated utility of building a path from location A to location B.
     '''
     def get_reward(self, locA, locB):
-        min_path, min_cost = self.min_road_cost(locA, locB)
-        reward = self.get_utility(locB) - min_cost - 250
+        min_path, min_cost = self.min_road_cost(self.map, locA, locB)
+        reward = self.get_population(locB, self.map) - min_cost - 250
 
         return min_path, reward, (min_cost + 250)
 
@@ -111,14 +130,18 @@ class MyPlayer(Player):
         max_path = None
         max_bid = 0
         sec_max_cost = -1
+
         for tower in self.get_cell_towers(self.map):
             path, reward, cost = self.get_reward(locA, tower)
-            if reward > max_reward and cost <= player_info.money:
+            print(f"Reward: {reward}, Cost: {cost}")
+            # if reward > max_reward and cost <= player_info.money:
+            if reward > max_reward:
                 max_path = path
                 max_reward = reward
                 max_bid = (cost - sec_max_cost) if sec_max_cost == -1 else (player_info.money - cost)
                 sec_max_cost = cost
 
+        print(f"Reward: {max_reward}, Max path: {len(max_path)}")
         return max_path, max_bid, max_reward
 
     '''
@@ -166,6 +189,9 @@ class MyPlayer(Player):
 
         # Get List[(path, reward)] where path is List of Tiles
         best_path, best_bid = self.get_best_path(map, player_info)
+
+        if best_path is None:
+            return
 
         # Set the bid
         self.set_bid(best_bid)
