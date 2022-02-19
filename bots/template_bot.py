@@ -57,12 +57,27 @@ class MyPlayer(Player):
         max_reward = -math.inf
         max_path = None
         for tower in self.get_cell_towers(self.map):
-            path, reward = self.get_reward(locA, tower)
+            path, reward, cost = self.get_reward(locA, tower)
             if reward > max_reward:
                 max_path = path
 
         assert max_path is not None
         return max_path, max_reward
+
+    '''
+    Returns best paths to build given map and cost
+    
+    Params:
+        - map: List[List[Tile]]
+        - cost: Float (TODO: currently not used in algo)
+        
+    Returns:
+        - paths: List[(List[Tile], reward)]
+          currently only the best two paths/rewards
+    '''
+    def get_best_path(self, map, cost):
+        pass
+
 
 
     def play_turn(self, turn_num, map, player_info):
