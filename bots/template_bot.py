@@ -79,6 +79,20 @@ class MyPlayer(Player):
     def get_best_path(self, map, cost):
         pass
 
+    '''
+    Compute ideal bid amount
+    '''
+    def get_bid(self, best_paths):
+        if best_paths is None or len(best_paths) <= 1:
+            return 0
+
+        best = best_paths[0]
+        second_best = best_paths[1]
+
+        best_reward = best[1]
+        second_reward = second_best[1]
+
+        return best_reward - second_reward
 
 
     def play_turn(self, turn_num, map, player_info):
