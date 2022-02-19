@@ -29,21 +29,20 @@ class MyPlayer(Player):
 
         path = []
         # Path along x
-        low_x = locB.x if locB.x < locA.x else locA.x
-        high_x = locB.x if locB.x > locA.x else locA.x
-        y = locB.y if low_x == locB.x else locA.y
-        for i in range(low_x, high_x + 1):
-            path.append(map[i][y])
+        if locA.x < locB.x:
+            for i in range(locA.x, locB.x + 1):
+                path.append(map[i][locA.y])
+        else:
+            for i in range(locA.x, locB.x - 1, -1):
+                path.append(map[i][locA.y])
 
         # Path along y
-        target_y = locB.y if y == locB.x else locA.y
-        while y != target_y:
-            if y < target_y:
-                path.append(map[high_x][y + 1])
-                y += 1
-            else:
-                path.append(map[high_x][y - 1])
-                y -= 1
+        if locA.y < locB.y:
+            for i in range(locA.y, locB.y + 1):
+                path.append(map[locB.x][i])
+        else:
+            for i in range(locA.y, locB.y - 1, -1):
+                path.append(map[locB.x][i])
 
         return path, 10 * (dx + dy)
 
@@ -51,7 +50,7 @@ class MyPlayer(Player):
     Generator to yield optimal cell tower locations.
     '''
     def get_cell_towers(self):
-        for tower in self.cell_towers:
+        for tower in self.cell_towers.copy():
             if self.is_profitable(tower):
                 yield tower
             else:
@@ -61,14 +60,16 @@ class MyPlayer(Player):
     Returns true if tile is profitable to us
     '''
     def is_profitable(self, tile):
+        tile = self.map[tile.x][tile.y]
         if tile.structure is not None:
             return False
 
         tiles = self.get_neighbors(tile)
         unoccupied = False
         for tile in tiles:
-            if tile.team == self.team and tile.structure is StructureType.TOWER:
-                return False
+            if tile.structure is not None:
+                if tile.structure is StructureType.TOWER and tile.structure.team == self.team:
+                    return False
             if tile.structure is None:
                 unoccupied = True
         return unoccupied
@@ -120,29 +121,29 @@ class MyPlayer(Player):
         rows = len(self.map)
         cols = len(self.map[0])
         if(x>=2):
-            n.append(map[x-2][y])
+            n.append(self.map[x-2][y])
         if((x>=1) and (y>=1)):
-            n.append((map[x-1][y-1]))
+            n.append((self.map[x-1][y-1]))
         if(x>=1):
-            n.append((map[x-1][y]))
+            n.append((self.map[x-1][y]))
         if((x>=1) and (y<cols-1)):
-            n.append((map[x-1][y+1]))
+            n.append((self.map[x-1][y+1]))
         if(y>=2):
-            n.append((map[x][y-2]))
+            n.append((self.map[x][y-2]))
         if(y>=1):
-            n.append((map[x][y-1]))
+            n.append((self.map[x][y-1]))
         if(y<cols-1):
-            n.append((map[x][y+1]))
+            n.append((self.map[x][y+1]))
         if(y<cols-2):
-            n.append((map[x][y+2]))
+            n.append((self.map[x][y+2]))
         if((x<rows-1) and (y>=1)):
-            n.append((map[x+1][y-1]))
+            n.append((self.map[x+1][y-1]))
         if(x<rows-1):
-            n.append((map[x+1][y]))
+            n.append((self.map[x+1][y]))
         if((x<rows-1) and (y<cols-1)):
-            n.append((map[x+1][y+1]))
+            n.append((self.map[x+1][y+1]))
         if(x<rows-2):
-            n.append((map[x+2][y]))
+            n.append((self.map[x+2][y]))
 
         return n
 
@@ -261,8 +262,11 @@ class MyPlayer(Player):
         best_path, best_bid = self.get_best_path(map, player_info)
 
         if best_path is None:
+            print("Best path is none")
             return
 
+        print("Len best path", len(best_path))
+        print(f"Target {best_path[-1].x}, {best_path[-1].y}")
         # Set the bid
         self.set_bid(best_bid)
 
