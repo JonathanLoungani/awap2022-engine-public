@@ -17,12 +17,9 @@ class MyPlayer(Player):
         self.map = None
         self.prev_dest = None
         self.cell_towers = None
+        self.team = None
 
         return
-
-    def init_cell_towers(self, map):
-
-        pass
 
     '''
     Calculate the minimum cost to build roads from locA to locB.
@@ -54,11 +51,28 @@ class MyPlayer(Player):
     '''
     Generator to yield optimal cell tower locations.
     '''
-    def get_cell_towers(self, map):
-        for row in map:
-            for tile in row:
-                if tile.structure is None and self.get_population(tile, self.map) > 0:
-                    yield tile
+    def get_cell_towers(self):
+        for tower in self.cell_towers:
+            if self.is_profitable(tower):
+                yield tower
+            else:
+                self.cell_towers.remove(tower)
+
+    '''
+    Returns true if tile is profitable to us
+    '''
+    def is_profitable(self, tile):
+        if tile.structure is not None:
+            return False
+
+        tiles = self.get_neighbors(tile)
+        unoccupied = False
+        for tile in tiles:
+            if tile.team == self.team and tile.structure is StructureType.TOWER:
+                return False
+            if tile.structure is None:
+                unoccupied = True
+        return unoccupied
 
     '''
     Get population at tile
@@ -100,11 +114,11 @@ class MyPlayer(Player):
     '''
     Gets tiles the have a population at or around it
     '''
-    def init_cell_towers(map):
+    def init_cell_towers(self, map):
         self.cell_towers = set()
         for row in map:
             for tile in row:
-                if(self.get_population(tile,map)>0):
+                if self.get_population(tile, map) > 0:
                     self.cell_towers.add(tile)
 
     '''
@@ -148,7 +162,7 @@ class MyPlayer(Player):
         max_bid = 0
         sec_max_cost = -1
 
-        for tower in self.get_cell_towers(self.map):
+        for tower in self.get_cell_towers():
             path, reward, cost = self.get_reward(locA, tower)
             # if reward > max_reward and cost <= player_info.money:
             if reward > max_reward:
@@ -245,6 +259,7 @@ class MyPlayer(Player):
     def play_turn(self, turn_num, map, player_info):
         if self.cell_towers is None:
             self.init_cell_towers(map)
+            self.team = player_info.team
 
         self.map = map
 
